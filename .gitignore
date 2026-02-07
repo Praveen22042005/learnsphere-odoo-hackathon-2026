@@ -11,7 +11,7 @@
 !.yarn/versions
 
 # instructions
-.github/copilot-instructions.md
+/.github/
 
 # testing
 /coverage
