@@ -1,26 +1,124 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Odoo Color Palette */
+  --color-odoo-purple: #875a7b;
+  --color-odoo-dark: #714b67;
+  --color-odoo-light: #b99bb7;
+  --color-odoo-accent: #00a09d;
+  --color-odoo-bg-light: #f0eeef;
+  --color-odoo-text-dark: #2c1338;
+
+  /* Font Families */
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-poppins);
+
+  /* Design System Colors */
+  --color-background: oklch(0.99 0.002 286);
+  --color-foreground: oklch(0.18 0.02 286);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.18 0.02 286);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.18 0.02 286);
+
+  /* Primary - Odoo Purple */
+  --color-primary: oklch(0.49 0.08 318);
+  --color-primary-foreground: oklch(0.99 0 0);
+
+  /* Secondary */
+  --color-secondary: oklch(0.96 0.01 286);
+  --color-secondary-foreground: oklch(0.18 0.02 286);
+
+  /* Muted */
+  --color-muted: oklch(0.96 0.01 286);
+  --color-muted-foreground: oklch(0.55 0.02 286);
+
+  /* Accent - Odoo Teal */
+  --color-accent: oklch(0.62 0.13 192);
+  --color-accent-foreground: oklch(0.99 0 0);
+
+  /* Destructive */
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.99 0 0);
+
+  /* Borders & Input */
+  --color-border: oklch(0.92 0.01 286);
+  --color-input: oklch(0.92 0.01 286);
+  --color-ring: oklch(0.49 0.08 318);
+
+  /* Chart Colors */
+  --color-chart-1: oklch(0.62 0.13 192);
+  --color-chart-2: oklch(0.65 0.18 70);
+  --color-chart-3: oklch(0.49 0.08 318);
+  --color-chart-4: oklch(0.7 0.19 22);
+  --color-chart-5: oklch(0.55 0.22 264);
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.625rem;
+}
+
+.dark {
+  --color-background: oklch(0.14 0.02 286);
+  --color-foreground: oklch(0.98 0.01 286);
+  --color-card: oklch(0.2 0.02 286);
+  --color-card-foreground: oklch(0.98 0.01 286);
+  --color-popover: oklch(0.2 0.02 286);
+  --color-popover-foreground: oklch(0.98 0.01 286);
+
+  /* Primary in dark mode */
+  --color-primary: oklch(0.65 0.1 318);
+  --color-primary-foreground: oklch(0.14 0.02 286);
+
+  --color-secondary: oklch(0.26 0.02 286);
+  --color-secondary-foreground: oklch(0.98 0.01 286);
+
+  --color-muted: oklch(0.26 0.02 286);
+  --color-muted-foreground: oklch(0.7 0.02 286);
+
+  --color-accent: oklch(0.26 0.02 286);
+  --color-accent-foreground: oklch(0.98 0.01 286);
+
+  --color-destructive: oklch(0.704 0.191 22.216);
+
+  --color-border: oklch(1 0 0 / 10%);
+  --color-input: oklch(1 0 0 / 15%);
+  --color-ring: oklch(0.65 0.1 318);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Odoo-specific utility classes */
+@layer utilities {
+  .odoo-gradient {
+    background: linear-gradient(135deg, #875a7b 0%, #714b67 100%);
+  }
+
+  .odoo-shadow {
+    box-shadow: 0 4px 14px 0 rgba(135, 90, 123, 0.15);
+  }
 }
