@@ -532,12 +532,16 @@ export function LessonsManager({
                       </Badge>
                     )}
                   </div>
-                  <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
+                  <div className="mt-0.5 flex min-w-0 items-center gap-3 text-xs text-muted-foreground">
                     {lesson.duration_minutes && (
-                      <span>{lesson.duration_minutes} min</span>
+                      <span className="shrink-0">
+                        {lesson.duration_minutes} min
+                      </span>
                     )}
                     {lesson.description && (
-                      <span className="truncate">{lesson.description}</span>
+                      <span className="min-w-0 truncate">
+                        {lesson.description}
+                      </span>
                     )}
                   </div>
                 </div>

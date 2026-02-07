@@ -1,43 +1,81 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Award, Clock, FileText, Play, Star, Trophy } from "lucide-react";
+import {
+  Award,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  FileText,
+  Loader2,
+  Play,
+  Star,
+  TrendingUp,
+  Trophy,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
-
-const MOCK_COURSES = [
-  {
-    id: 1,
-    title: "Basics of Odoo CRM",
-    description: "Master lead management and sales pipelines.",
-    tags: ["CRM"],
-    lessonsCount: 12,
-    duration: "4h 20m",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400",
-    progress: 45,
-  },
-  {
-    id: 2,
-    title: "Inventory Management",
-    description: "Advanced techniques for warehouse optimization.",
-    tags: ["Inventory", "Logistics"],
-    lessonsCount: 8,
-    duration: "2h 15m",
-    image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400",
-    progress: 10,
-  },
-  {
-    id: 3,
-    title: "Odoo Custom Apps",
-    description: "Build your first module from scratch using Python.",
-    tags: ["Development"],
-    lessonsCount: 15,
-    duration: "6h 45m",
-    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400",
-    progress: 0,
-  },
-];
+import { toast } from "sonner";
 
 export default function LearnerDashboardPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+   
+  const [enrollments, setEnrollments] = useState<any[]>([]);
+   
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [enrollRes, profileRes] = await Promise.all([
+          fetch("/api/learner/courses?enrolled=true"),
+          fetch("/api/learner/profile"),
+        ]);
+        if (enrollRes.ok) {
+          const d = await enrollRes.json();
+          setEnrollments(d.enrollments || []);
+        }
+        if (profileRes.ok) {
+          const d = await profileRes.json();
+          setProfile(d);
+        }
+      } catch {
+        toast.error("Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const activeCourses = enrollments.filter((e) => e.status === "active");
+  const completedCourses = enrollments.filter((e) => e.status === "completed");
+  const totalPoints = profile?.totalPoints || 0;
+  const currentBadge = profile?.currentBadge;
+  const nextBadge = profile?.nextBadge;
+
+  const badgeLevels = [
+    { name: "Newbie", pts: 20 },
+    { name: "Explorer", pts: 40 },
+    { name: "Achiever", pts: 60 },
+    { name: "Specialist", pts: 80 },
+    { name: "Expert", pts: 100 },
+    { name: "Master", pts: 120 },
+  ];
+
   return (
     <div className="flex flex-col xl:flex-row gap-8">
       <div className="flex-1 space-y-8">
@@ -52,87 +90,200 @@ export default function LearnerDashboardPage() {
           <div className="relative z-10">
             <h2 className="text-xl font-bold mb-2">Welcome back!</h2>
             <p className="opacity-90 max-w-lg">
-              You&apos;ve completed 80% of your weekly goal. Keep up the great
-              work learning Odoo!
+              {enrollments.length > 0
+                ? `You have ${activeCourses.length} active course${activeCourses.length !== 1 ? "s" : ""} and ${completedCourses.length} completed. Keep it up!`
+                : "Start your learning journey by browsing our course catalog."}
             </p>
+            {enrollments.length === 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mt-3"
+                onClick={() => router.push("/learner/browse")}
+              >
+                Browse Courses
+              </Button>
+            )}
           </div>
           <Award className="absolute right-4 top-1/2 -translate-y-1/2 w-32 h-32 text-primary-foreground opacity-10" />
         </div>
 
-        {/* Courses Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {MOCK_COURSES.map((course) => (
-            <div
-              key={course.id}
-              className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-lg transition-all group cursor-pointer flex flex-col"
-            >
-              <div className="h-40 relative overflow-hidden bg-muted">
-                <Image
-                  src={course.image}
-                  alt={course.title}
-                  width={400}
-                  height={160}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                />
-                <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Play className="text-white w-10 h-10 fill-current" />
-                </div>
+        {/* Stats Row */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Enrolled</CardTitle>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{enrollments.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{activeCourses.length}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Completed</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {completedCourses.length}
               </div>
-              <div className="p-5 flex flex-col flex-1">
-                <h3 className="font-bold text-primary text-lg mb-2 line-clamp-1">
-                  {course.title}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {course.description}
-                </p>
-                <div className="flex items-center gap-2 mb-2">
-                  {course.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-[10px] font-bold uppercase tracking-wider bg-accent/10 text-accent px-2 py-0.5 rounded-sm"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {course.duration}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <FileText className="w-3 h-3" /> {course.lessonsCount}{" "}
-                    Lessons
-                  </span>
-                </div>
-
-                <div className="mt-auto">
-                  <div className="w-full bg-muted rounded-full h-2 mb-4">
-                    <div
-                      className="bg-accent h-2 rounded-full"
-                      style={{ width: `${course.progress}%` }}
-                    ></div>
-                  </div>
-                  <Button
-                    className="w-full font-bold"
-                    variant={course.progress > 0 ? "default" : "secondary"}
-                  >
-                    {course.progress > 0 ? "Continue Learning" : "Start Course"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Points</CardTitle>
+              <Star className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalPoints}</div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Course Cards */}
+        {enrollments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {enrollments.slice(0, 4).map((enrollment: any) => {
+              const course = enrollment.course;
+              if (!course) return null;
+              const courseId = course.id || enrollment.course_id;
+              return (
+                <div
+                  key={enrollment.id}
+                  className="bg-card rounded-2xl border border-border overflow-hidden shadow-sm hover:shadow-lg transition-all group cursor-pointer flex flex-col"
+                  onClick={() => router.push(`/learner/courses/${courseId}`)}
+                >
+                  <div className="h-40 relative overflow-hidden bg-muted">
+                    {course.thumbnail_url ? (
+                      <Image
+                        src={course.thumbnail_url}
+                        alt={course.title}
+                        width={400}
+                        height={160}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <BookOpen className="h-10 w-10 text-muted-foreground/30" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Play className="text-white w-10 h-10 fill-current" />
+                    </div>
+                    {enrollment.status === "completed" && (
+                      <Badge className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px]">
+                        <CheckCircle2 className="h-3 w-3 mr-0.5" /> Done
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="font-bold text-primary text-lg mb-2 line-clamp-1">
+                      {course.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      {course.description || "No description yet."}
+                    </p>
+                    {course.tags && course.tags.length > 0 && (
+                      <div className="flex items-center gap-2 mb-2">
+                        {course.tags.slice(0, 3).map((tag: string) => (
+                          <span
+                            key={tag}
+                            className="text-[10px] font-bold uppercase tracking-wider bg-accent/10 text-accent px-2 py-0.5 rounded-sm"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
+                      {(enrollment.time_spent_minutes || 0) > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {enrollment.time_spent_minutes >= 60
+                            ? `${Math.floor(enrollment.time_spent_minutes / 60)}h ${enrollment.time_spent_minutes % 60}m`
+                            : `${enrollment.time_spent_minutes}m`}
+                        </span>
+                      )}
+                      {course.category && (
+                        <span className="flex items-center gap-1">
+                          <FileText className="w-3 h-3" /> {course.category}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-auto">
+                      <div className="w-full bg-muted rounded-full h-2 mb-4">
+                        <div
+                          className="bg-accent h-2 rounded-full transition-all"
+                          style={{
+                            width: `${enrollment.progress_percentage || 0}%`,
+                          }}
+                        />
+                      </div>
+                      <Button
+                        className="w-full font-bold"
+                        variant={
+                          (enrollment.progress_percentage || 0) > 0
+                            ? "default"
+                            : "secondary"
+                        }
+                      >
+                        {enrollment.status === "completed"
+                          ? "Review Course"
+                          : (enrollment.progress_percentage || 0) > 0
+                            ? "Continue Learning"
+                            : "Start Course"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-10 text-center">
+            <BookOpen className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
+            <p className="text-muted-foreground">
+              You haven&apos;t enrolled in any courses yet.
+            </p>
+            <Button
+              variant="link"
+              onClick={() => router.push("/learner/browse")}
+            >
+              Explore Courses
+            </Button>
+          </div>
+        )}
+
+        {enrollments.length > 4 && (
+          <div className="text-center">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/learner/my-courses")}
+            >
+              View All Courses
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Sidebar Widget */}
       <aside className="w-full xl:w-80 space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>My profile</CardTitle>
+            <CardTitle>My Profile</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
-            {/* Circular Progress Placeholder */}
             <div className="relative w-32 h-32 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
                 <circle
@@ -153,49 +304,48 @@ export default function LearnerDashboardPage() {
                   className="text-accent"
                   fill="transparent"
                   strokeDasharray="364"
-                  strokeDashoffset="120"
+                  strokeDashoffset={
+                    364 - (364 * Math.min(totalPoints, 120)) / 120
+                  }
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="text-xs text-muted-foreground">Total 25</span>
+                <span className="text-xs text-muted-foreground">
+                  Total {totalPoints}
+                </span>
                 <span className="font-bold text-xl">Points</span>
-                <span className="font-bold text-accent text-sm">Newbie</span>
+                <span className="font-bold text-accent text-sm">
+                  {currentBadge?.name || "—"}
+                </span>
               </div>
             </div>
 
-            {/* Badges List */}
             <div className="w-full mt-8 space-y-4">
               <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
                 BADGES
               </div>
-              <div className="flex justify-between text-sm items-center">
-                <span className="font-bold text-orange-500">Newbie</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-xs">20 Pts</span>
-                  <CheckCircleIcon className="w-4 h-4 text-green-500" />
-                </div>
-              </div>
-              <div className="flex justify-between text-sm items-center opacity-50">
-                <span className="font-bold text-orange-400">Explorer</span>
-                <span className="text-muted-foreground text-xs">40 Pts</span>
-              </div>
-              <div className="flex justify-between text-sm items-center opacity-50">
-                <span className="font-bold text-orange-400">Achiever</span>
-                <span className="text-muted-foreground text-xs">60 Pts</span>
-              </div>
-              <div className="flex justify-between text-sm items-center opacity-50">
-                <span className="font-bold text-orange-400">Specialist</span>
-                <span className="text-muted-foreground text-xs">80 Pts</span>
-              </div>
-              <div className="flex justify-between text-sm items-center opacity-50">
-                <span className="font-bold text-orange-400">Expert</span>
-                <span className="text-muted-foreground text-xs">100 Pts</span>
-              </div>
-              <div className="flex justify-between text-sm items-center opacity-50">
-                <span className="font-bold text-orange-400">Master</span>
-                <span className="text-muted-foreground text-xs">120 Pts</span>
-              </div>
+              {badgeLevels.map((badge) => {
+                const isEarned = totalPoints >= badge.pts;
+                return (
+                  <div
+                    key={badge.name}
+                    className={`flex justify-between text-sm items-center ${!isEarned ? "opacity-50" : ""}`}
+                  >
+                    <span className="font-bold text-orange-500">
+                      {badge.name}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground text-xs">
+                        {badge.pts} Pts
+                      </span>
+                      {isEarned && (
+                        <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -208,8 +358,24 @@ export default function LearnerDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm opacity-90 mb-1">Earn more points to reach</p>
-            <p className="text-2xl font-bold">Explorer</p>
+            {nextBadge ? (
+              <>
+                <p className="text-sm opacity-90 mb-1">
+                  Earn more points to reach
+                </p>
+                <p className="text-2xl font-bold">{nextBadge.name}</p>
+                <p className="text-xs opacity-70 mt-1">
+                  {nextBadge.min_points - totalPoints} points to go
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm opacity-90 mb-1">
+                  You&apos;ve reached the top!
+                </p>
+                <p className="text-2xl font-bold">Master</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </aside>

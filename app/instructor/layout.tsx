@@ -69,7 +69,9 @@ export default async function InstructorLayout({
             </Avatar>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 overflow-x-hidden p-4">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

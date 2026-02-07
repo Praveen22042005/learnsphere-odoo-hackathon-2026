@@ -1,6 +1,8 @@
 // Course types matching Supabase schema
 
 export type CourseStatus = "draft" | "published" | "archived";
+export type CourseVisibility = "everyone" | "signed_in";
+export type CourseAccessType = "open" | "invitation" | "payment";
 
 export interface Course {
   id: string;
@@ -19,6 +21,9 @@ export interface Course {
   enrollment_count: number;
   average_rating: number;
   total_reviews: number;
+  visibility: CourseVisibility;
+  access_type: CourseAccessType;
+  course_admin_id: string | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;

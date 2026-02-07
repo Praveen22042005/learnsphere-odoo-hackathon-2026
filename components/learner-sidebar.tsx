@@ -17,6 +17,7 @@ import {
   Trophy,
   MessageSquare,
   StarHalf,
+  User,
 } from "lucide-react";
 
 import { NavSection } from "@/components/nav-section";
@@ -133,6 +134,14 @@ export function LearnerSidebar({
         <SidebarGroup className="mt-auto py-2">
           <SidebarMenu className="gap-0">
             <SidebarMenuItem>
+              <SidebarMenuButton asChild className="h-9">
+                <a href="/learner/profile">
+                  <User className="w-4 h-4 shrink-0" />
+                  <span className="text-sm truncate">My Profile</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
               <div className="flex items-center gap-2 px-2 h-9 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors cursor-pointer overflow-hidden group">
                 <UserButton
                   appearance={{
@@ -144,7 +153,7 @@ export function LearnerSidebar({
                   }}
                   userProfileMode="modal"
                 />
-                <span className="text-sm truncate">Profile</span>
+                <span className="text-sm truncate">Account</span>
               </div>
             </SidebarMenuItem>
           </SidebarMenu>

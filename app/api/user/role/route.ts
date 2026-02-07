@@ -4,7 +4,6 @@ import { UserRole, isValidRole } from "@/types/roles";
 import {
   syncClerkUserToSupabase,
   createRoleProfile,
-  getSupabaseUser,
 } from "@/utils/supabase/admin";
 
 export async function POST(req: Request) {

@@ -15,7 +15,7 @@ import {
   TrendingUp,
   UserPlus,
   Mail,
-  Settings,
+  User,
 } from "lucide-react";
 
 import { NavSection } from "@/components/nav-section";
@@ -131,9 +131,9 @@ export function InstructorSidebar({
           <SidebarMenu className="gap-0">
             <SidebarMenuItem>
               <SidebarMenuButton asChild className="h-9">
-                <a href="/instructor/settings">
-                  <Settings className="w-4 h-4 shrink-0" />
-                  <span className="text-sm truncate">Course Settings</span>
+                <a href="/instructor/profile">
+                  <User className="w-4 h-4 shrink-0" />
+                  <span className="text-sm truncate">My Profile</span>
                 </a>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -149,7 +149,7 @@ export function InstructorSidebar({
                   }}
                   userProfileMode="modal"
                 />
-                <span className="text-sm truncate">Profile</span>
+                <span className="text-sm truncate">Account</span>
               </div>
             </SidebarMenuItem>
           </SidebarMenu>
