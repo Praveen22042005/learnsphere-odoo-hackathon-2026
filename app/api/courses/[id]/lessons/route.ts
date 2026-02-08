@@ -137,7 +137,39 @@ export async function POST(
       );
     }
 
-    return NextResponse.json({ lesson }, { status: 201 });
+    // If lesson type is quiz, auto-create a quiz entity and link it
+    let quiz = null;
+    if (lesson_type === "quiz") {
+      const { data: quizData, error: quizError } = await supabase
+        .from("quizzes")
+        .insert({
+          course_id: courseId,
+          lesson_id: lesson.id,
+          title: title.trim(),
+          description: "",
+          passing_score: 70,
+          time_limit_minutes: null,
+        })
+        .select()
+        .single();
+
+      if (quizError) {
+        console.error("Quiz auto-create error:", quizError);
+        // Continue without failing - lesson was created successfully
+      } else {
+        quiz = quizData;
+        // Create default rewards (4 attempts)
+        const rewards = [
+          { quiz_id: quiz.id, attempt_number: 1, points_awarded: 15 },
+          { quiz_id: quiz.id, attempt_number: 2, points_awarded: 10 },
+          { quiz_id: quiz.id, attempt_number: 3, points_awarded: 5 },
+          { quiz_id: quiz.id, attempt_number: 4, points_awarded: 2 },
+        ];
+        await supabase.from("quiz_rewards").insert(rewards);
+      }
+    }
+
+    return NextResponse.json({ lesson, quiz }, { status: 201 });
   } catch (error) {
     console.error("Lessons POST error:", error);
     return NextResponse.json(

@@ -106,12 +106,12 @@ export async function POST(
     // Get reward points based on attempt number
     const { data: reward } = await supabase
       .from("quiz_rewards")
-      .select("points")
+      .select("points_awarded")
       .eq("quiz_id", quizId)
       .eq("attempt_number", Math.min(attemptNumber, 4)) // Max defined is usually 4
       .single();
 
-    const pointsEarned = passed ? reward?.points || 0 : 0;
+    const pointsEarned = passed ? reward?.points_awarded || 0 : 0;
 
     // Create the attempt record
     const { data: attempt, error } = await supabase
@@ -142,23 +142,23 @@ export async function POST(
     if (passed && pointsEarned > 0) {
       const { data: profile } = await supabase
         .from("learner_profiles")
-        .select("total_points")
+        .select("points")
         .eq("user_id", userData.id)
         .single();
 
       if (profile) {
-        const newTotal = (profile.total_points || 0) + pointsEarned;
+        const newTotal = (profile.points || 0) + pointsEarned;
         await supabase
           .from("learner_profiles")
-          .update({ total_points: newTotal })
+          .update({ points: newTotal })
           .eq("user_id", userData.id);
 
         // Check for badge upgrades
         const { data: badges } = await supabase
           .from("badges")
           .select("*")
-          .lte("min_points", newTotal)
-          .order("min_points", { ascending: false });
+          .lte("points_value", newTotal)
+          .order("points_value", { ascending: false });
 
         if (badges && badges.length > 0) {
           for (const badge of badges) {

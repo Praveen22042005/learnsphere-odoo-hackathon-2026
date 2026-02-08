@@ -108,7 +108,7 @@ export async function GET() {
     const { data: allBadges } = await supabase
       .from("badges")
       .select("*")
-      .order("min_points", { ascending: true });
+      .order("points_value", { ascending: true });
 
     let currentBadge = null;
     let nextBadge = null;
@@ -116,7 +116,7 @@ export async function GET() {
 
     if (allBadges) {
       for (let i = 0; i < allBadges.length; i++) {
-        if (totalPoints >= allBadges[i].min_points) {
+        if (totalPoints >= allBadges[i].points_value) {
           currentBadge = allBadges[i];
           nextBadge = allBadges[i + 1] || null;
         }
@@ -127,6 +127,7 @@ export async function GET() {
       user: userData,
       profile,
       badges: userBadges || [],
+      allBadges: allBadges || [],
       achievements: userAchievements || [],
       stats,
       quizStats,

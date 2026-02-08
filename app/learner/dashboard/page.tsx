@@ -24,9 +24,9 @@ import { toast } from "sonner";
 export default function LearnerDashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-   
+
   const [enrollments, setEnrollments] = useState<any[]>([]);
-   
+
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
@@ -43,6 +43,11 @@ export default function LearnerDashboardPage() {
         if (profileRes.ok) {
           const d = await profileRes.json();
           setProfile(d);
+        } else if (profileRes.status === 404) {
+          // User not found in database, redirect to role selection
+          toast.error("Profile not found. Please complete setup.");
+          router.replace("/select-role");
+          return;
         }
       } catch {
         toast.error("Failed to load dashboard data");
@@ -51,7 +56,7 @@ export default function LearnerDashboardPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
@@ -66,15 +71,8 @@ export default function LearnerDashboardPage() {
   const totalPoints = profile?.totalPoints || 0;
   const currentBadge = profile?.currentBadge;
   const nextBadge = profile?.nextBadge;
-
-  const badgeLevels = [
-    { name: "Newbie", pts: 20 },
-    { name: "Explorer", pts: 40 },
-    { name: "Achiever", pts: 60 },
-    { name: "Specialist", pts: 80 },
-    { name: "Expert", pts: 100 },
-    { name: "Master", pts: 120 },
-  ];
+  const allBadges = profile?.allBadges || [];
+  const earnedBadges = profile?.badges || [];
 
   return (
     <div className="flex flex-col xl:flex-row gap-8">
@@ -325,19 +323,33 @@ export default function LearnerDashboardPage() {
               <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">
                 BADGES
               </div>
-              {badgeLevels.map((badge) => {
-                const isEarned = totalPoints >= badge.pts;
+              {allBadges.map((badge: any) => {
+                const isEarned =
+                  totalPoints >= badge.points_value ||
+                  earnedBadges.some((ub: any) => ub.badge_id === badge.id);
                 return (
                   <div
-                    key={badge.name}
+                    key={badge.id}
                     className={`flex justify-between text-sm items-center ${!isEarned ? "opacity-50" : ""}`}
                   >
-                    <span className="font-bold text-orange-500">
-                      {badge.name}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {badge.icon_url && (
+                        <Image
+                          src={badge.icon_url}
+                          alt={badge.name}
+                          width={20}
+                          height={20}
+                          className="object-contain"
+                          unoptimized
+                        />
+                      )}
+                      <span className="font-bold text-orange-500">
+                        {badge.name}
+                      </span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground text-xs">
-                        {badge.pts} Pts
+                        {badge.points_value} Pts
                       </span>
                       {isEarned && (
                         <CheckCircleIcon className="w-4 h-4 text-green-500" />
@@ -363,17 +375,50 @@ export default function LearnerDashboardPage() {
                 <p className="text-sm opacity-90 mb-1">
                   Earn more points to reach
                 </p>
-                <p className="text-2xl font-bold">{nextBadge.name}</p>
-                <p className="text-xs opacity-70 mt-1">
-                  {nextBadge.min_points - totalPoints} points to go
+                <div className="flex items-center gap-3 mt-2">
+                  {nextBadge.icon_url && (
+                    <Image
+                      src={nextBadge.icon_url}
+                      alt={nextBadge.name}
+                      width={40}
+                      height={40}
+                      className="object-contain"
+                      unoptimized
+                    />
+                  )}
+                  <div>
+                    <p className="text-2xl font-bold">{nextBadge.name}</p>
+                    <p className="text-xs opacity-70">
+                      {nextBadge.points_value - totalPoints} points to go
+                    </p>
+                  </div>
+                </div>
+              </>
+            ) : currentBadge ? (
+              <>
+                <p className="text-sm opacity-90 mb-1">
+                  Congratulations! You&apos;ve reached the top!
                 </p>
+                <div className="flex items-center gap-3 mt-2">
+                  {currentBadge.icon_url && (
+                    <Image
+                      src={currentBadge.icon_url}
+                      alt={currentBadge.name}
+                      width={48}
+                      height={48}
+                      className="object-contain"
+                      unoptimized
+                    />
+                  )}
+                  <p className="text-2xl font-bold">{currentBadge.name}</p>
+                </div>
               </>
             ) : (
               <>
-                <p className="text-sm opacity-90 mb-1">
-                  You&apos;ve reached the top!
+                <p className="text-sm opacity-90 mb-1">Start earning points!</p>
+                <p className="text-2xl font-bold">
+                  Complete quizzes to unlock badges
                 </p>
-                <p className="text-2xl font-bold">Master</p>
               </>
             )}
           </CardContent>

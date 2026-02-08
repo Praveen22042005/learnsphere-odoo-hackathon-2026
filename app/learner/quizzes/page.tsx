@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 
 interface QuizInfo {
@@ -30,18 +29,29 @@ interface QuizInfo {
   time_limit_minutes: number | null;
   questions_count: number;
   course_title?: string;
+  // Attempt status fields
+  attempt_count?: number;
+  best_score?: number | null;
+  has_passed?: boolean;
+  last_attempt?: {
+    score: number;
+    passed: boolean;
+    attempt_number: number;
+    points_earned: number;
+    completed_at: string;
+  } | null;
 }
 
 export default function LearnerQuizzesPage() {
   const [loading, setLoading] = useState(true);
   const [quizzes, setQuizzes] = useState<QuizInfo[]>([]);
-   
+
   const [activeQuiz, setActiveQuiz] = useState<any>(null);
-   
+
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
-   
+
   const [result, setResult] = useState<any>(null);
 
   useEffect(() => {
@@ -336,19 +346,6 @@ export default function LearnerQuizzesPage() {
                     </div>
                   </RadioGroup>
                 )}
-
-                {q.question_type === "short_answer" && (
-                  <Input
-                    value={answers[q.id] || ""}
-                    onChange={(e) =>
-                      setAnswers((prev) => ({
-                        ...prev,
-                        [q.id]: e.target.value,
-                      }))
-                    }
-                    placeholder="Type your answer..."
-                  />
-                )}
               </CardContent>
             </Card>
           ))}
@@ -388,42 +385,63 @@ export default function LearnerQuizzesPage() {
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {quizzes.map((quiz) => (
-            <Card key={quiz.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="pt-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-1">
-                    <p className="font-semibold">{quiz.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {quiz.course_title}
-                    </p>
-                    {quiz.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {quiz.description}
+          {quizzes.map((quiz) => {
+            const hasAttempted = (quiz.attempt_count || 0) > 0;
+            const hasPassed = quiz.has_passed || false;
+
+            return (
+              <Card key={quiz.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold">{quiz.title}</p>
+                        {hasPassed && (
+                          <Badge variant="default" className="text-xs">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Completed
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {quiz.course_title}
                       </p>
-                    )}
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
-                      <span>{quiz.questions_count} questions</span>
-                      <span>Pass: {quiz.passing_score}%</span>
-                      {quiz.time_limit_minutes && (
-                        <span className="flex items-center gap-0.5">
-                          <Clock className="h-3 w-3" />{" "}
-                          {quiz.time_limit_minutes}m
-                        </span>
+                      {quiz.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {quiz.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
+                        <span>{quiz.questions_count} questions</span>
+                        <span>Pass: {quiz.passing_score}%</span>
+                        {quiz.time_limit_minutes && (
+                          <span className="flex items-center gap-0.5">
+                            <Clock className="h-3 w-3" />{" "}
+                            {quiz.time_limit_minutes}m
+                          </span>
+                        )}
+                      </div>
+                      {hasAttempted && quiz.best_score !== null && (
+                        <p className="text-xs text-muted-foreground pt-1">
+                          Best score: {quiz.best_score}% · {quiz.attempt_count}{" "}
+                          attempt{quiz.attempt_count !== 1 ? "s" : ""}
+                        </p>
                       )}
                     </div>
+                    <Button
+                      size="sm"
+                      onClick={() => startQuiz(quiz)}
+                      className="shrink-0 gap-1"
+                      variant={hasPassed ? "outline" : "default"}
+                    >
+                      {hasPassed ? "Retake" : "Start"}{" "}
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => startQuiz(quiz)}
-                    className="shrink-0 gap-1"
-                  >
-                    Start <ChevronRight className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
     </div>

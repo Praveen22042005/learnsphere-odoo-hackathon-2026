@@ -480,9 +480,9 @@ ADD COLUMN external_video_url TEXT;
 -- ============================================================================
 
 INSERT INTO badges (name, description, icon_url, criteria, points_value, rarity) VALUES
-('Newbie', 'Earned your first 20 points', '/badges/newbie.svg', '{"min_points": 20}', 20, 'common'),
-('Explorer', 'Reached 40 points milestone', '/badges/explorer.svg', '{"min_points": 40}', 40, 'common'),
-('Achiever', 'Achieved 60 points', '/badges/achiever.svg', '{"min_points": 60}', 60, 'uncommon'),
-('Specialist', 'Mastered 80 points', '/badges/specialist.svg', '{"min_points": 80}', 80, 'rare'),
-('Expert', 'Reached 100 points', '/badges/expert.svg', '{"min_points": 100}', 100, 'rare'),
-('Master', 'Elite status at 120 points', '/badges/master.svg', '{"min_points": 120}', 120, 'legendary');
+('Newbie', 'Earned your first 20 points', 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Seedling/3D/seedling_3d.png', '{"min_points": 20}', 20, 'common'),
+('Explorer', 'Reached 40 points milestone', 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Compass/3D/compass_3d.png', '{"min_points": 40}', 40, 'common'),
+('Achiever', 'Achieved 60 points', 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sports%20medal/3D/sports_medal_3d.png', '{"min_points": 60}', 60, 'uncommon'),
+('Specialist', 'Mastered 80 points', 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Glowing%20star/3D/glowing_star_3d.png', '{"min_points": 80}', 80, 'rare'),
+('Expert', 'Reached 100 points', 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Gem%20stone/3D/gem_stone_3d.png', '{"min_points": 100}', 100, 'rare'),
+('Master', 'Elite status at 120 points', 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Crown/3D/crown_3d.png', '{"min_points": 120}', 120, 'legendary');

@@ -62,7 +62,6 @@ interface QuizBuilderProps {
 const QUESTION_TYPES: { value: QuizQuestionType; label: string }[] = [
   { value: "multiple_choice", label: "Multiple Choice" },
   { value: "true_false", label: "True / False" },
-  { value: "short_answer", label: "Short Answer" },
 ];
 
 export function QuizBuilder({
@@ -530,7 +529,7 @@ function QuestionEditor({
       ...question,
       question_text: qText,
       question_type: qType,
-      options: qType === "short_answer" ? null : options,
+      options: options,
       correct_answer: correctAnswer,
       points: parseInt(points) || 1,
       explanation: explanation || null,
@@ -640,8 +639,6 @@ function QuestionEditor({
                     { label: "Option D", value: "d" },
                   ]);
                   setCorrectAnswer("a");
-                } else if (v === "short_answer") {
-                  setOptions([]);
                 }
               }}
             >
@@ -671,66 +668,52 @@ function QuestionEditor({
         </div>
 
         {/* Options for MC / T-F */}
-        {qType !== "short_answer" && (
-          <div className="space-y-3">
-            <Label>Answer Options</Label>
-            {options.map((opt, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <button
-                  onClick={() => setCorrectAnswer(opt.value)}
-                  className={cn(
-                    "shrink-0 rounded-full p-1 transition-colors",
-                    correctAnswer === opt.value
-                      ? "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                  title="Mark as correct"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                </button>
-                <Input
-                  value={opt.label}
-                  onChange={(e) => updateOption(idx, "label", e.target.value)}
-                  placeholder={`Option ${idx + 1}`}
-                  className="flex-1"
-                />
-                {qType === "multiple_choice" && options.length > 2 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeOption(idx)}
-                    className="text-destructive hover:text-destructive h-8 w-8 p-0"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+        <div className="space-y-3">
+          <Label>Answer Options</Label>
+          {options.map((opt, idx) => (
+            <div key={idx} className="flex items-center gap-2">
+              <button
+                onClick={() => setCorrectAnswer(opt.value)}
+                className={cn(
+                  "shrink-0 rounded-full p-1 transition-colors",
+                  correctAnswer === opt.value
+                    ? "text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
-              </div>
-            ))}
-            {qType === "multiple_choice" && options.length < 6 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={addOption}
-                className="gap-1.5"
+                title="Mark as correct"
               >
-                <Plus className="h-3 w-3" />
-                Add Option
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Short answer correct answer */}
-        {qType === "short_answer" && (
-          <div className="space-y-2">
-            <Label>Correct Answer</Label>
-            <Input
-              value={correctAnswer}
-              onChange={(e) => setCorrectAnswer(e.target.value)}
-              placeholder="Enter the expected answer"
-            />
-          </div>
-        )}
+                <CheckCircle2 className="h-4 w-4" />
+              </button>
+              <Input
+                value={opt.label}
+                onChange={(e) => updateOption(idx, "label", e.target.value)}
+                placeholder={`Option ${idx + 1}`}
+                className="flex-1"
+              />
+              {qType === "multiple_choice" && options.length > 2 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeOption(idx)}
+                  className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          ))}
+          {qType === "multiple_choice" && options.length < 6 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addOption}
+              className="gap-1.5"
+            >
+              <Plus className="h-3 w-3" />
+              Add Option
+            </Button>
+          )}
+        </div>
 
         {/* Explanation */}
         <div className="space-y-2">

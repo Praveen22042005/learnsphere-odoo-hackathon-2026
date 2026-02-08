@@ -45,7 +45,7 @@ export default function LearnerPointsPage() {
   const stats = profile?.stats || {};
 
   const nextBadgeProgress = nextBadge
-    ? Math.min(100, Math.round((totalPoints / nextBadge.min_points) * 100))
+    ? Math.min(100, Math.round((totalPoints / nextBadge.points_value) * 100))
     : 100;
 
   return (
@@ -110,7 +110,7 @@ export default function LearnerPointsPage() {
                     Next: {nextBadge.name}
                   </span>
                   <span>
-                    {totalPoints}/{nextBadge.min_points} pts
+                    {totalPoints}/{nextBadge.points_value} pts
                   </span>
                 </div>
                 <Progress value={nextBadgeProgress} className="h-2" />
