@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { UserRole } from "@/types/roles";
+import { isAdmin } from "@/lib/auth-helpers";
 import { createServiceClient } from "@/utils/supabase/admin";
 
 export async function GET() {
@@ -12,9 +12,8 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const role = (authData.sessionClaims?.metadata as Record<string, string>)
-      ?.role;
-    if (role !== UserRole.ADMIN) {
+    // Check if user is admin
+    if (!(await isAdmin())) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -106,12 +105,12 @@ export async function GET() {
       {
         role: "Learners",
         count: learnersResult.count || 0,
-        fill: "var(--color-learners)",
+        fill: "#3b82f6",
       },
       {
         role: "Instructors",
         count: instructorsResult.count || 0,
-        fill: "var(--color-instructors)",
+        fill: "#f59e0b",
       },
       {
         role: "Admins",
@@ -119,7 +118,7 @@ export async function GET() {
           (usersResult.count || 0) -
           (learnersResult.count || 0) -
           (instructorsResult.count || 0),
-        fill: "var(--color-admins)",
+        fill: "#8b5cf6",
       },
     ];
 
