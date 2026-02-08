@@ -73,40 +73,59 @@ interface DashboardData {
 const enrollmentChartConfig = {
   enrollments: {
     label: "Enrollments",
-    color: "hsl(var(--chart-1))",
+    color: "#10b981",
   },
 } satisfies ChartConfig;
 
 const pieChartConfig = {
   learners: {
     label: "Learners",
-    color: "hsl(var(--chart-1))",
+    color: "#3b82f6",
   },
   instructors: {
     label: "Instructors",
-    color: "hsl(var(--chart-2))",
+    color: "#f59e0b",
   },
   admins: {
     label: "Admins",
-    color: "hsl(var(--chart-3))",
+    color: "#8b5cf6",
   },
 } satisfies ChartConfig;
 
 const PIE_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
+  "#3b82f6", // Blue for Learners
+  "#f59e0b", // Amber/Orange for Instructors
+  "#8b5cf6", // Purple for Admins
 ];
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("Fetching admin stats...");
     fetch("/api/admin/stats")
-      .then((res) => res.json())
-      .then((d) => setData(d))
-      .catch(console.error)
+      .then(async (res) => {
+        console.log("Response status:", res.status);
+        if (!res.ok) {
+          const errorData = await res
+            .json()
+            .catch(() => ({ error: "Unknown error" }));
+          console.error("API error:", errorData);
+          throw new Error(errorData.error || `HTTP ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((d) => {
+        console.log("Admin stats received:", d);
+        setData(d);
+        setError(null);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch admin stats:", err);
+        setError(err.message || "Failed to load dashboard data");
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -143,6 +162,39 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="font-heading text-2xl font-bold">Admin Dashboard</h2>
+          <p className="text-muted-foreground">
+            Platform overview and real-time insights.
+          </p>
+        </div>
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              Error Loading Dashboard
+            </CardTitle>
+            <CardDescription>{error}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Please make sure you have admin permissions and try refreshing the
+              page.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Refresh Page
+            </button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -246,8 +298,8 @@ export default function AdminDashboardPage() {
                   <Area
                     type="monotone"
                     dataKey="enrollments"
-                    stroke="var(--color-enrollments)"
-                    fill="var(--color-enrollments)"
+                    stroke="#10b981"
+                    fill="#10b981"
                     fillOpacity={0.2}
                   />
                 </AreaChart>
@@ -282,10 +334,12 @@ export default function AdminDashboardPage() {
                     outerRadius={80}
                     label={({ role, count }) => `${role}: ${count}`}
                   >
-                    {(data?.userDistribution || []).map((_, index) => (
+                    {(data?.userDistribution || []).map((entry, index) => (
                       <Cell
-                        key={index}
-                        fill={PIE_COLORS[index % PIE_COLORS.length]}
+                        key={`cell-${index}`}
+                        fill={
+                          entry.fill || PIE_COLORS[index % PIE_COLORS.length]
+                        }
                       />
                     ))}
                   </Pie>

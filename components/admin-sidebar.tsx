@@ -3,7 +3,8 @@
 import * as React from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { UserButton, useClerk } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
+import { ClientUserButton } from "@/components/shared/client-user-button";
 import {
   LayoutDashboard,
   BookOpen,
@@ -157,7 +158,7 @@ export function AdminSidebar({
           <SidebarMenu className="gap-0">
             <SidebarMenuItem>
               <div className="flex items-center gap-2 px-2 h-9 rounded-md overflow-hidden">
-                <UserButton
+                <ClientUserButton
                   appearance={{
                     elements: {
                       rootBox: "shrink-0",

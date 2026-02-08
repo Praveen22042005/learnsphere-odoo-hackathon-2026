@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { ClientUserButton } from "@/components/shared/client-user-button";
 import {
   BookOpen,
   LayoutDashboard,
@@ -143,7 +143,7 @@ export function LearnerSidebar({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <div className="flex items-center gap-2 px-2 h-9 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors cursor-pointer overflow-hidden group">
-                <UserButton
+                <ClientUserButton
                   appearance={{
                     elements: {
                       rootBox: "shrink-0",

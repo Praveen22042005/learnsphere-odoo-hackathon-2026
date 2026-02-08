@@ -1,6 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { UserRole } from "@/types/roles";
+import { isAdmin } from "@/lib/auth-helpers";
 import { createServiceClient } from "@/utils/supabase/admin";
 
 // GET /api/admin/analytics — Enrollment trends, completions, course analytics
@@ -12,9 +12,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const role = (authData.sessionClaims?.metadata as Record<string, string>)
-      ?.role;
-    if (role !== UserRole.ADMIN) {
+    if (!(await isAdmin())) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
