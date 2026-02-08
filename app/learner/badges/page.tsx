@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Loader2, Lock, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,6 +21,7 @@ const BADGE_COLORS: Record<string, string> = {
 };
 
 export default function LearnerBadgesPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
 
@@ -27,6 +29,11 @@ export default function LearnerBadgesPage() {
     async function fetchProfile() {
       try {
         const res = await fetch("/api/learner/profile");
+        if (res.status === 404) {
+          toast.error("Profile not found. Please complete setup.");
+          router.replace("/select-role");
+          return;
+        }
         if (res.ok) {
           const data = await res.json();
           setProfile(data);
@@ -38,7 +45,7 @@ export default function LearnerBadgesPage() {
       }
     }
     fetchProfile();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (

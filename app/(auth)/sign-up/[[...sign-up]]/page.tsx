@@ -24,6 +24,7 @@ export default function SignUpPage() {
 
       {/* Sign Up Form */}
       <SignUp
+        fallbackRedirectUrl="/select-role"
         appearance={{
           elements: {
             rootBox: "mx-auto",

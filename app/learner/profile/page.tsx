@@ -51,20 +51,24 @@ export default function LearnerProfilePage() {
         return;
       }
     }
+  }, [user, router]);
+
+  useEffect(() => {
     fetchProfile();
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchProfile = async () => {
     try {
       const response = await fetch("/api/learner/profile");
-      
+
       // If user not found (404), redirect to select role
       if (response.status === 404) {
         toast.error("Profile not found. Please select your role first.");
         router.replace("/select-role");
         return;
       }
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch profile");
       }

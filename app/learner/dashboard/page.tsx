@@ -43,6 +43,11 @@ export default function LearnerDashboardPage() {
         if (profileRes.ok) {
           const d = await profileRes.json();
           setProfile(d);
+        } else if (profileRes.status === 404) {
+          // User not found in database, redirect to role selection
+          toast.error("Profile not found. Please complete setup.");
+          router.replace("/select-role");
+          return;
         }
       } catch {
         toast.error("Failed to load dashboard data");
@@ -51,7 +56,7 @@ export default function LearnerDashboardPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
