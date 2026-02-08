@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -33,6 +34,7 @@ import {
 
 export default function LearnerProfilePage() {
   const { user } = useUser();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
@@ -41,13 +43,31 @@ export default function LearnerProfilePage() {
   });
 
   useEffect(() => {
+    // Check if user has a role first
+    if (user) {
+      const role = (user.publicMetadata as any)?.role;
+      if (!role) {
+        router.replace("/select-role");
+        return;
+      }
+    }
     fetchProfile();
-  }, []);
+  }, [user]);
 
   const fetchProfile = async () => {
     try {
       const response = await fetch("/api/learner/profile");
-      if (!response.ok) throw new Error("Failed to fetch profile");
+      
+      // If user not found (404), redirect to select role
+      if (response.status === 404) {
+        toast.error("Profile not found. Please select your role first.");
+        router.replace("/select-role");
+        return;
+      }
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch profile");
+      }
 
       const data = await response.json();
       setProfileData(data);
@@ -58,6 +78,8 @@ export default function LearnerProfilePage() {
     } catch (error) {
       console.error("Error fetching profile:", error);
       toast.error("Failed to load profile");
+      // Redirect to dashboard on error to avoid infinite loop
+      setTimeout(() => router.replace("/dashboard"), 2000);
     } finally {
       setLoading(false);
     }
@@ -99,8 +121,8 @@ export default function LearnerProfilePage() {
   const totalPoints = profileData?.totalPoints || 0;
 
   const progressToNextBadge = nextBadge
-    ? ((totalPoints - currentBadge?.min_points || 0) /
-        (nextBadge.min_points - (currentBadge?.min_points || 0))) *
+    ? ((totalPoints - currentBadge?.points_value || 0) /
+        (nextBadge.points_value - (currentBadge?.points_value || 0))) *
       100
     : 100;
 
@@ -191,7 +213,7 @@ export default function LearnerProfilePage() {
                 <div className="text-right">
                   <p className="font-medium">Next: {nextBadge.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {nextBadge.min_points - totalPoints} points to go
+                    {nextBadge.points_value - totalPoints} points to go
                   </p>
                 </div>
               )}

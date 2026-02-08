@@ -1,9 +1,6 @@
 // Quiz types matching Supabase schema
 
-export type QuizQuestionType =
-  | "multiple_choice"
-  | "true_false"
-  | "short_answer";
+export type QuizQuestionType = "multiple_choice" | "true_false";
 
 export interface Quiz {
   id: string;

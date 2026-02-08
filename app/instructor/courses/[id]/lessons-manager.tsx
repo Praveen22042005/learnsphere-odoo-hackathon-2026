@@ -299,16 +299,20 @@ export function LessonsManager({
   courseId,
   lessons,
   onLessonsChange,
+  initialEditingId = null,
+  onQuizLessonCreated,
 }: {
   courseId: string;
   lessons: Lesson[];
   onLessonsChange: (lessons: Lesson[]) => void;
+  initialEditingId?: string | null;
+  onQuizLessonCreated?: (quizId: string) => void;
 }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newType, setNewType] = useState<LessonType>("video");
   const [creating, setCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(initialEditingId);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // ── Create Lesson ──
@@ -331,14 +335,20 @@ export function LessonsManager({
         throw new Error(data.error || "Failed to create lesson");
       }
 
-      const { lesson } = await res.json();
+      const { lesson, quiz } = await res.json();
       onLessonsChange([...lessons, lesson]);
       toast.success("Lesson created!");
       setCreateOpen(false);
       setNewTitle("");
       setNewType("video");
-      // Open in edit mode immediately
-      setEditingId(lesson.id);
+
+      // If quiz lesson was created and quiz entity exists, redirect to Quiz tab
+      if (lesson.lesson_type === "quiz" && quiz && onQuizLessonCreated) {
+        onQuizLessonCreated(quiz.id);
+      } else {
+        // Open in edit mode immediately for non-quiz lessons
+        setEditingId(lesson.id);
+      }
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to create lesson",
@@ -346,7 +356,14 @@ export function LessonsManager({
     } finally {
       setCreating(false);
     }
-  }, [courseId, lessons, newTitle, newType, onLessonsChange]);
+  }, [
+    courseId,
+    lessons,
+    newTitle,
+    newType,
+    onLessonsChange,
+    onQuizLessonCreated,
+  ]);
 
   // ── Delete Lesson ──
   const handleDelete = useCallback(

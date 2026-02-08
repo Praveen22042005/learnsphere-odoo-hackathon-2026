@@ -16,6 +16,13 @@ export async function GET(
     const { id: courseId } = await params;
     const supabase = createServiceClient();
 
+    // Get user ID for attempt lookup
+    const { data: userData } = await supabase
+      .from("users")
+      .select("id")
+      .eq("clerk_user_id", userId)
+      .single();
+
     // Get all lessons for this course first
     const { data: lessons } = await supabase
       .from("lessons")
@@ -49,11 +56,57 @@ export async function GET(
       );
     }
 
-    const mapped = (quizzes || []).map((q) => ({
-      ...q,
-      questions_count: q.quiz_questions?.length || 0,
-      quiz_questions: undefined,
-    }));
+    // Fetch quiz attempts for this user
+    const quizIds = (quizzes || []).map((q) => q.id);
+    let attempts: Array<{
+      quiz_id: string;
+      score: number;
+      passed: boolean;
+      attempt_number: number;
+      points_earned: number;
+      completed_at: string;
+    }> = [];
+
+    if (userData && quizIds.length > 0) {
+      const { data: attemptData } = await supabase
+        .from("quiz_attempts")
+        .select(
+          "quiz_id, score, passed, attempt_number, points_earned, completed_at",
+        )
+        .eq("learner_id", userData.id)
+        .in("quiz_id", quizIds)
+        .order("completed_at", { ascending: false });
+
+      attempts = attemptData || [];
+    }
+
+    // Create a map of quiz attempts
+    const attemptsMap = new Map();
+    for (const attempt of attempts) {
+      if (!attemptsMap.has(attempt.quiz_id)) {
+        attemptsMap.set(attempt.quiz_id, []);
+      }
+      attemptsMap.get(attempt.quiz_id).push(attempt);
+    }
+
+    const mapped = (quizzes || []).map((q) => {
+      const quizAttempts = attemptsMap.get(q.id) || [];
+      const bestAttempt = quizAttempts.length > 0 ? quizAttempts[0] : null;
+      const hasCompleted = quizAttempts.some(
+        (a: (typeof attempts)[0]) => a.passed,
+      );
+
+      return {
+        ...q,
+        questions_count: q.quiz_questions?.length || 0,
+        quiz_questions: undefined,
+        // Add attempt status
+        attempt_count: quizAttempts.length,
+        best_score: bestAttempt?.score || null,
+        has_passed: hasCompleted,
+        last_attempt: bestAttempt,
+      };
+    });
 
     return NextResponse.json({ quizzes: mapped });
   } catch (error) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Save,
@@ -114,6 +114,10 @@ export function CourseEditorClient({
   initialLessons: Lesson[];
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab") || "content";
+  const lessonIdParam = searchParams.get("lessonId");
+  const quizIdParam = searchParams.get("quizId");
 
   // ── Course form state ──
   const [course, setCourse] = useState(initialCourse);
@@ -174,6 +178,16 @@ export function CourseEditorClient({
   useEffect(() => {
     fetchQuizzes();
   }, [fetchQuizzes]);
+
+  // Handle quizId URL param for auto-selecting quiz after lesson creation
+  useEffect(() => {
+    if (quizzes.length > 0 && quizIdParam && !selectedQuizId) {
+      const quiz = quizzes.find((q) => q.id === quizIdParam);
+      if (quiz) {
+        setSelectedQuizId(quizIdParam);
+      }
+    }
+  }, [quizzes, quizIdParam, selectedQuizId]);
 
   // ── Save course ──
   const handleSave = useCallback(async () => {
@@ -465,7 +479,7 @@ export function CourseEditorClient({
       </div>
 
       {/* ── Tabbed Editor ── 4 Tabs ────────────────────────────── */}
-      <Tabs defaultValue="content" className="w-full">
+      <Tabs defaultValue={tabParam} className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="content" className="gap-1.5">
             <BookOpen className="h-3.5 w-3.5" />
@@ -491,6 +505,19 @@ export function CourseEditorClient({
             courseId={course.id}
             lessons={lessons}
             onLessonsChange={setLessons}
+            initialEditingId={lessonIdParam}
+            onQuizLessonCreated={(quizId: string) => {
+              // Redirect to Quiz tab with the new quiz selected
+              const url = new URL(window.location.href);
+              url.searchParams.set("tab", "quiz");
+              url.searchParams.set("quizId", quizId);
+              url.searchParams.delete("lessonId");
+              window.history.pushState({}, "", url.toString());
+              // Fetch updated quizzes and select the new one
+              fetchQuizzes().then(() => {
+                setSelectedQuizId(quizId);
+              });
+            }}
           />
         </TabsContent>
 
